@@ -31,7 +31,7 @@ public class Parser {
     }
 
     public func parseObject() throws -> Json {
-        let json = Json.JsonObject([String: Json]())
+        var dict = [String: Json]()
         while tokenList.hasNext() {
             let token = tokenList.peek()
             switch token {
@@ -40,12 +40,10 @@ public class Parser {
                 fallthrough
             case .STRING:
                 let (key, value) = try parseEntry()
-                if case var .JsonObject(dict) = json {
-                    dict[key] = value
-                }
+                dict[key] = value
             case .END_OBJECT:
                 _ = tokenList.next()
-                return json
+                return Json.JsonObject(dict)
             default:
                 throw JsonParseException.InvalidToken
             }
@@ -54,16 +52,14 @@ public class Parser {
     }
 
     public func parseArray() throws -> Json {
-        let json = Json.JsonArray([Json]())
+        var array = [Json]()
         while tokenList.hasNext() {
             let token = tokenList.next()
             switch token {
             case .BEGIN_ARRAY, .SEP_COMMA:
-                if case var .JsonArray(array) = json {
-                    array.append(try parse())
-                }
+                array.append(try parse())
             case .END_ARRAY:
-                return json
+                return Json.JsonArray(array)
             default:
                 throw JsonParseException.InvalidToken
             }

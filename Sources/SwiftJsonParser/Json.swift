@@ -17,9 +17,9 @@ public enum Json {
         case let .JsonString(str):
             return "\"\(str)\""
         case let .JsonArray(array):
-            return array.map { (json: Json) -> String in json.toString }.joined()
+            return "{\(array.map { (json: Json) -> String in json.toString }.joined(separator: ","))}"
         case let .JsonObject(dict):
-            return dict.map { (key, value) -> String in "\(key):\(value.toString)" }.joined()
+            return "{\(dict.map { (key, value) -> String in "\(key):\(value.toString)" }.joined(separator: ","))}"
         }
     }
 }

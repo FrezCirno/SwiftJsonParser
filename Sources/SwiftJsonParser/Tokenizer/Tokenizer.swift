@@ -172,6 +172,8 @@ public class Tokenizer {
             repeat {
                 expon.append(scanner.next())
             } while scanner.peek().isNumber
+        } else {
+            expon.append("0")
         }
 
         let value = Double(base)! * pow(10, Double(expon)!)
