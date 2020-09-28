@@ -7,30 +7,30 @@
 
 public class Scanner {
     private var str: String
-    private var ptr: String.Index
+    public var position: String.Index
 
     init(_ str: String) {
         self.str = str
-        ptr = str.startIndex
+        position = str.startIndex
     }
 
     public func hasNext() -> Bool {
-        return ptr != str.endIndex
+        return position != str.endIndex
     }
 
     public func next() -> Character {
-        let oldptr = ptr
-        ptr = str.index(after: ptr)
+        let oldptr = position
+        position = str.index(after: position)
         return str[oldptr]
     }
 
     public func peek() -> Character {
-        return str[ptr]
+        return str[position]
     }
 
     public func back() {
-        if ptr != str.startIndex {
-            ptr = str.index(before: ptr)
+        if position != str.startIndex {
+            position = str.index(before: position)
         }
     }
 }

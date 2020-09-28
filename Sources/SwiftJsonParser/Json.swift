@@ -4,7 +4,7 @@ public enum Json {
     case JsonNumber(Double)
     case JsonString(String)
     indirect case JsonArray([Json])
-    indirect case JsonObject([String: Json])
+    indirect case JsonObject([(String, Json)])
 
     var toString: String {
         switch self {
@@ -17,9 +17,9 @@ public enum Json {
         case let .JsonString(str):
             return "\"\(str)\""
         case let .JsonArray(array):
-            return "{\(array.map { (json: Json) -> String in json.toString }.joined(separator: ","))}"
-        case let .JsonObject(dict):
-            return "{\(dict.map { (key, value) -> String in "\(key):\(value.toString)" }.joined(separator: ","))}"
+            return "[\(array.map { (json: Json) -> String in json.toString }.joined(separator: ","))]"
+        case let .JsonObject(kvpairs):
+            return "{\(kvpairs.map { (key, value) -> String in "\"\(key)\":\(value.toString)" }.joined(separator: ","))}"
         }
     }
 }

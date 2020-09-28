@@ -11,5 +11,4 @@ public enum Token {
     case BOOLEAN(Bool)
     case SEP_COLON
     case SEP_COMMA
-    case END_DOCUMENT
 }

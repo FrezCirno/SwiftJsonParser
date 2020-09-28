@@ -1,17 +1,18 @@
-import Foundation
 
-let manager = FileManager.default
-let urlsForDocDirectory = manager.urls(for: .documentDirectory, in:.userDomainMask)
-let file = urlsForDocDirectory[0].appendingPathComponent("1.txt")
+var readString = """
+{"status":200,"data":["123",null,1.2345E45,true,false,{"id":2,"name":"b"},{"id":3,"name":"c"},{"id":4,"name":"d"},{"id":5,"name":"e"}],"msg":"aaaaa"}
+"""
 
-let data = manager.contents(atPath: file.path)
-let readString = String(data: data!, encoding: String.Encoding.utf8)
-//print("文件内容: \(String(describing: readString))")
+print("文件内容: \(readString)")
 
-let scanner = Scanner(readString!)
+let scanner = Scanner(readString)
 
-let tokenList = try Tokenizer(scanner).tokenize()
+let tokenizer = try Tokenizer(scanner)
 
-let json = try Parser(tokenList).parse()
+// while tokenizer.hasNext() {
+//     print(try tokenizer.next())
+// }
+
+let json = try Parser(tokenizer).parse()
 
 print(json.toString)

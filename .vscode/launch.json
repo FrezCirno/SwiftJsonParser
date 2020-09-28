@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/.build/debug/swjson",
+            "program": "${workspaceFolder}/.build/debug/SwiftJsonParser",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "swift-build"

@@ -1,27 +1,31 @@
 
 
 public class Parser {
-    private let tokenList: TokenList
+    private let tokenList: Tokenizer
 
-    init(_ tokenList: TokenList) {
+    init(_ tokenList: Tokenizer) {
         self.tokenList = tokenList
     }
 
     public func parse() throws -> Json {
         while tokenList.hasNext() {
-            let token = tokenList.next()
+            let token = try tokenList.peek()
             switch token {
             case .BEGIN_OBJECT:
                 return try parseObject()
             case .BEGIN_ARRAY:
                 return try parseArray()
             case let .STRING(value):
+                _ = try tokenList.next()
                 return .JsonString(value)
             case let .NUMBER(value):
+                _ = try tokenList.next()
                 return .JsonNumber(value)
             case let .BOOLEAN(value):
+                _ = try tokenList.next()
                 return .JsonBoolean(value)
             case .NULL:
+                _ = try tokenList.next()
                 return .JsonNull
             default:
                 throw JsonParseException.InvalidToken
@@ -31,19 +35,21 @@ public class Parser {
     }
 
     public func parseObject() throws -> Json {
-        var dict = [String: Json]()
+        var kvpairs = [(String, Json)]()
+
         while tokenList.hasNext() {
-            let token = tokenList.peek()
-            switch token {
-            case .SEP_COMMA:
-                _ = tokenList.next()
-                fallthrough
-            case .STRING:
-                let (key, value) = try parseEntry()
-                dict[key] = value
+            switch try tokenList.next() {
+            case .BEGIN_OBJECT, .SEP_COMMA:
+                let token = try tokenList.next()
+                guard case let .STRING(key) = token else {
+                    throw JsonParseException.ExpectString
+                }
+                guard case .SEP_COLON = try tokenList.next() else {
+                    throw JsonParseException.ExpectColon
+                }
+                kvpairs.append((key, try parse()))
             case .END_OBJECT:
-                _ = tokenList.next()
-                return Json.JsonObject(dict)
+                return Json.JsonObject(kvpairs)
             default:
                 throw JsonParseException.InvalidToken
             }
@@ -53,8 +59,9 @@ public class Parser {
 
     public func parseArray() throws -> Json {
         var array = [Json]()
+
         while tokenList.hasNext() {
-            let token = tokenList.next()
+            let token = try tokenList.next()
             switch token {
             case .BEGIN_ARRAY, .SEP_COMMA:
                 array.append(try parse())
@@ -65,22 +72,6 @@ public class Parser {
             }
         }
         throw JsonParseException.ExpectToken
-    }
-
-    private func parseEntry() throws -> (String, Json) {
-        var token: Token
-
-        token = tokenList.next()
-        guard case let .STRING(key) = token else {
-            throw JsonParseException.ExpectString
-        }
-
-        token = tokenList.next()
-        guard case .SEP_COLON = token else {
-            throw JsonParseException.ExpectColon
-        }
-
-        return (key, try parse())
     }
 
     enum JsonParseException: Error {
