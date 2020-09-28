@@ -1,13 +1,11 @@
 /**
  * 字符流
  *
- *
- *
  */
 
 public class Scanner {
     private var str: String
-    public var position: String.Index
+    private(set) var position: String.Index
 
     init(_ str: String) {
         self.str = str

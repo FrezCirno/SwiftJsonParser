@@ -1,5 +1,18 @@
 import Foundation
 
+public enum Token {
+    case BEGIN_OBJECT
+    case END_OBJECT
+    case BEGIN_ARRAY
+    case END_ARRAY
+    case NULL
+    case NUMBER(Double)
+    case STRING(String)
+    case BOOLEAN(Bool)
+    case SEP_COLON
+    case SEP_COMMA
+}
+
 public class Tokenizer {
     private var scanner: Scanner
     private var _next: Token?
@@ -118,6 +131,8 @@ public class Tokenizer {
                         ucodeStr.append(ucode)
                         str.append(Character(ucodeStr))
                     }
+                case " ":
+                    str.append(" ")
                 default:
                     throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
                 }

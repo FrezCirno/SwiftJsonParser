@@ -7,7 +7,7 @@ public class Parser {
         self.tokenList = tokenList
     }
 
-    public func parse() throws -> Json {
+    public func parse() throws -> JSON {
         while tokenList.hasNext() {
             let token = try tokenList.peek()
             switch token {
@@ -34,8 +34,8 @@ public class Parser {
         throw JsonParseException.ExpectToken
     }
 
-    public func parseObject() throws -> Json {
-        var kvpairs = [(String, Json)]()
+    public func parseObject() throws -> JSON {
+        var kvpairs = [(String, JSON)]()
 
         while tokenList.hasNext() {
             switch try tokenList.next() {
@@ -49,7 +49,7 @@ public class Parser {
                 }
                 kvpairs.append((key, try parse()))
             case .END_OBJECT:
-                return Json.JsonObject(kvpairs)
+                return JSON.JsonObject(kvpairs)
             default:
                 throw JsonParseException.InvalidToken
             }
@@ -57,8 +57,8 @@ public class Parser {
         throw JsonParseException.ExpectToken
     }
 
-    public func parseArray() throws -> Json {
-        var array = [Json]()
+    public func parseArray() throws -> JSON {
+        var array = [JSON]()
 
         while tokenList.hasNext() {
             let token = try tokenList.next()
@@ -66,7 +66,7 @@ public class Parser {
             case .BEGIN_ARRAY, .SEP_COMMA:
                 array.append(try parse())
             case .END_ARRAY:
-                return Json.JsonArray(array)
+                return JSON.JsonArray(array)
             default:
                 throw JsonParseException.InvalidToken
             }
