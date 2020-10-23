@@ -1,19 +1,6 @@
 import Foundation
 
-public enum Token {
-    case BEGIN_OBJECT
-    case END_OBJECT
-    case BEGIN_ARRAY
-    case END_ARRAY
-    case NULL
-    case NUMBER(Double)
-    case STRING(String)
-    case BOOLEAN(Bool)
-    case SEP_COLON
-    case SEP_COMMA
-}
-
-public class Tokenizer {
+public class TokenizerImpl: Tokenizer {
     private var scanner: Scanner
     private var _next: Token?
 
@@ -22,7 +9,7 @@ public class Tokenizer {
     }
 
     public func hasNext() -> Bool {
-        return scanner.hasNext()
+        return _next != nil || scanner.hasNext()
     }
 
     public func peek() throws -> Token {
@@ -44,7 +31,7 @@ public class Tokenizer {
 
     public func nextToken() throws -> Token {
         while scanner.hasNext() {
-            let ch = scanner.next()
+            let ch = try scanner.next()
             switch ch {
             case "{":
                 return .BEGIN_OBJECT
@@ -67,7 +54,7 @@ public class Tokenizer {
             case "\"":
                 return try readString()
             case "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
-                scanner.back()
+                try scanner.back()
                 return try readNumber()
             default:
                 throw JsonTokenizeException.IllegalCharacter(position: scanner.position)
@@ -77,22 +64,22 @@ public class Tokenizer {
     }
 
     private func readNull() throws -> Token {
-        guard scanner.next() == "u", scanner.next() == "l", scanner.next() == "l" else {
-            throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
+        guard try scanner.next() == "u", try scanner.next() == "l", try scanner.next() == "l" else {
+            throw JsonTokenizeException.ExpectedNull(position: scanner.position)
         }
         return .NULL
     }
 
     private func readTrue() throws -> Token {
-        guard scanner.next() == "r", scanner.next() == "u", scanner.next() == "e" else {
-            throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
+        guard try scanner.next() == "r", try scanner.next() == "u", try scanner.next() == "e" else {
+            throw JsonTokenizeException.ExpectedTrue(position: scanner.position)
         }
         return .BOOLEAN(true)
     }
 
     private func readFalse() throws -> Token {
-        guard scanner.next() == "a", scanner.next() == "l", scanner.next() == "s", scanner.next() == "e" else {
-            throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
+        guard try scanner.next() == "a", try scanner.next() == "l", try scanner.next() == "s", try scanner.next() == "e" else {
+            throw JsonTokenizeException.ExpectedFalse(position: scanner.position)
         }
         return .BOOLEAN(false)
     }
@@ -100,10 +87,10 @@ public class Tokenizer {
     private func readString() throws -> Token {
         var str = ""
         while scanner.hasNext() {
-            let ch = scanner.next()
+            let ch = try scanner.next()
             switch ch {
             case "\\":
-                let cch = scanner.next()
+                let cch = try scanner.next()
                 switch cch {
                 case "\"":
                     str.append("\"")
@@ -123,10 +110,10 @@ public class Tokenizer {
                     str.append("\t")
                 case "u":
                     for _ in 1 ... 4 {
-                        let ucode = scanner.next()
+                        let ucode = try scanner.next()
                         var ucodeStr = ""
                         guard ucode.isHexDigit else {
-                            throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
+                            throw JsonTokenizeException.IllegalCharacter(position: scanner.position)
                         }
                         ucodeStr.append(ucode)
                         str.append(Character(ucodeStr))
@@ -134,79 +121,79 @@ public class Tokenizer {
                 case " ":
                     str.append(" ")
                 default:
-                    throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
+                    throw JsonTokenizeException.IllegalCharacter(position: scanner.position)
                 }
             case "\"":
                 return .STRING(str)
             case "\r", "\n":
-                throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
+                throw JsonTokenizeException.IllegalCharacter(position: scanner.position)
             default:
                 str.append(ch)
             }
         }
-        throw JsonTokenizeException.InvalidJsonString(position: scanner.position)
+        throw JsonTokenizeException.IllegalCharacter(position: scanner.position)
     }
 
     private func readNumber() throws -> Token {
         var base = "", expon = "", ch: Character?
 
         /* 负号 */
-        ch = scanner.peek()
-        if ch == "-" {
-            base.append(scanner.next())
+        if try scanner.peek() == "-" {
+            base.append(try scanner.next())
         }
 
         /* 底数整数部分 */
-        guard scanner.peek().isNumber else {
+        guard try scanner.peek().isNumber else {
             throw JsonTokenizeException.ExpectedNumber(position: scanner.position)
         }
-        base.append(scanner.next())
+        base.append(try scanner.next())
 
-        if ch != "0" {
-            while scanner.peek().isNumber {
-                base.append(scanner.next())
-            }
+        while try scanner.hasNext() && scanner.peek().isNumber {
+            base.append(try scanner.next())
         }
 
         /* 底数小数部分 */
-        if scanner.peek() == "." {
-            base.append(scanner.next())
-            guard scanner.peek().isNumber else {
+        if try scanner.hasNext() && scanner.peek() == "." {
+            base.append(try scanner.next())
+            guard try scanner.hasNext() && scanner.peek().isNumber else {
                 throw JsonTokenizeException.ExpectedNumber(position: scanner.position)
             }
             repeat {
-                base.append(scanner.next())
-            } while scanner.peek().isNumber
+                base.append(try scanner.next())
+            } while try scanner.hasNext() && scanner.peek().isNumber
         }
 
         /* 指数 */
-        ch = scanner.peek()
-        if ch == "e" || ch == "E" {
-            _ = scanner.next()
+        if try scanner.hasNext() && (scanner.peek() == "e" || scanner.peek() == "E") {
+            _ = try scanner.next()
 
-            ch = scanner.peek()
+            ch = try scanner.peek()
             if ch == "-" || ch == "+" {
-                expon.append(scanner.next())
+                expon.append(try scanner.next())
             }
 
-            guard scanner.peek().isNumber else {
+            guard try scanner.hasNext() && scanner.peek().isNumber else {
                 throw JsonTokenizeException.ExpectedNumber(position: scanner.position)
             }
             repeat {
-                expon.append(scanner.next())
-            } while scanner.peek().isNumber
+                expon.append(try scanner.next())
+            } while try scanner.hasNext() && scanner.peek().isNumber
         } else {
             expon.append("0")
         }
 
-        let value = Double(base)! * pow(10, Double(expon)!)
-        return .NUMBER(value)
+        guard let nbase = Double(base), let nexpon = Double(expon) else {
+            throw JsonTokenizeException.ExpectedNumber(position: scanner.position)
+        }
+        return .NUMBER(nbase * pow(10, nexpon))
     }
 
     enum JsonTokenizeException: Error {
-        case InvalidJsonString(position: String.Index)
         case IllegalCharacter(position: String.Index)
         case ExpectedNumber(position: String.Index)
+        case ExpectedNull(position: String.Index)
+        case ExpectedTrue(position: String.Index)
+        case ExpectedFalse(position: String.Index)
         case ExpectedCharacter
     }
 }

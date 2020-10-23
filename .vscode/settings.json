@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "/home/frezcirno/anaconda3/bin/python",
+    "lldb.showDisassembly": "auto",
+    "lldb.dereferencePointers": true
+}

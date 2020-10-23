@@ -4,12 +4,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftJsonParser",
+    name: "MyJSONSerialization",
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .executable(
-            name: "SwiftJsonParser",
-            targets: ["SwiftJsonParser"]
+            name: "MyJSONSerialization",
+            targets: ["MyJSONSerialization"]
         ),
     ],
     dependencies: [
@@ -20,11 +20,8 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
-            name: "SwiftJsonParser",
+            name: "MyJSONSerialization",
             dependencies: []
         ),
-        // .testTarget(
-        //     name: "swiftTests",
-        //     dependencies: ["swift"]),
     ]
 )

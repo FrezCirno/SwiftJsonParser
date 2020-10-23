@@ -1,4 +1,4 @@
-
+import Foundation
 
 public class Parser {
     private let tokenList: Tokenizer
@@ -7,7 +7,7 @@ public class Parser {
         self.tokenList = tokenList
     }
 
-    public func parse() throws -> JSON {
+    public func parse() throws -> Any {
         while tokenList.hasNext() {
             let token = try tokenList.peek()
             switch token {
@@ -17,16 +17,16 @@ public class Parser {
                 return try parseArray()
             case let .STRING(value):
                 _ = try tokenList.next()
-                return .JsonString(value)
+                return value
             case let .NUMBER(value):
                 _ = try tokenList.next()
-                return .JsonNumber(value)
+                return value
             case let .BOOLEAN(value):
                 _ = try tokenList.next()
-                return .JsonBoolean(value)
+                return value
             case .NULL:
                 _ = try tokenList.next()
-                return .JsonNull
+                return NSNull()
             default:
                 throw JsonParseException.InvalidToken
             }
@@ -34,22 +34,24 @@ public class Parser {
         throw JsonParseException.ExpectToken
     }
 
-    public func parseObject() throws -> JSON {
-        var kvpairs = [(String, JSON)]()
+    public func parseObject() throws -> [NSString: Any] {
+        var kvpairs = [NSString: Any]()
 
         while tokenList.hasNext() {
             switch try tokenList.next() {
             case .BEGIN_OBJECT, .SEP_COMMA:
-                let token = try tokenList.next()
-                guard case let .STRING(key) = token else {
-                    throw JsonParseException.ExpectString
+                if try tokenList.hasNext() && tokenList.peek() != .SEP_COMMA && tokenList.peek() != .END_OBJECT {
+                    let token = try tokenList.next()
+                    guard case let .STRING(key) = token else {
+                        throw JsonParseException.ExpectString
+                    }
+                    guard case .SEP_COLON = try tokenList.next() else {
+                        throw JsonParseException.ExpectColon
+                    }
+                    kvpairs[NSString(string: key)] = try parse()
                 }
-                guard case .SEP_COLON = try tokenList.next() else {
-                    throw JsonParseException.ExpectColon
-                }
-                kvpairs.append((key, try parse()))
             case .END_OBJECT:
-                return JSON.JsonObject(kvpairs)
+                return kvpairs
             default:
                 throw JsonParseException.InvalidToken
             }
@@ -57,16 +59,18 @@ public class Parser {
         throw JsonParseException.ExpectToken
     }
 
-    public func parseArray() throws -> JSON {
-        var array = [JSON]()
+    public func parseArray() throws -> [Any] {
+        var array = [Any]()
 
         while tokenList.hasNext() {
             let token = try tokenList.next()
             switch token {
             case .BEGIN_ARRAY, .SEP_COMMA:
-                array.append(try parse())
+                if try tokenList.hasNext() && tokenList.peek() != .SEP_COMMA && tokenList.peek() != .END_ARRAY {
+                    array.append(try parse())
+                }
             case .END_ARRAY:
-                return JSON.JsonArray(array)
+                return array
             default:
                 throw JsonParseException.InvalidToken
             }

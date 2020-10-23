@@ -8,10 +8,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/.build/debug/SwiftJsonParser",
+            "program": ".build/debug/MyJSONSerialization",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "swift-build"
         }
     ]
 }

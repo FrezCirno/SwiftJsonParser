@@ -6,7 +6,10 @@
         {
             "label": "swift-build",
             "type": "shell",
-            "command": "swift build",
+            "command": "swift",
+            "args": [
+                "build"
+            ],
             "problemMatcher": [],
             "group": {
                 "kind": "build",
