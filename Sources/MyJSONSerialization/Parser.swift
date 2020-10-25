@@ -34,8 +34,8 @@ public class Parser {
         throw JsonParseException.ExpectToken
     }
 
-    public func parseObject() throws -> [NSString: Any] {
-        var kvpairs = [NSString: Any]()
+    private func parseObject() throws -> [String: Any] {
+        var kvpairs = [String: Any]()
 
         while tokenList.hasNext() {
             switch try tokenList.next() {
@@ -48,7 +48,7 @@ public class Parser {
                     guard case .SEP_COLON = try tokenList.next() else {
                         throw JsonParseException.ExpectColon
                     }
-                    kvpairs[NSString(string: key)] = try parse()
+                    kvpairs[key] = try parse()
                 }
             case .END_OBJECT:
                 return kvpairs
@@ -59,7 +59,7 @@ public class Parser {
         throw JsonParseException.ExpectToken
     }
 
-    public func parseArray() throws -> [Any] {
+    private func parseArray() throws -> [Any] {
         var array = [Any]()
 
         while tokenList.hasNext() {

@@ -1,4 +1,3 @@
-import Foundation
 
 public enum Token: Equatable {
     case BEGIN_OBJECT

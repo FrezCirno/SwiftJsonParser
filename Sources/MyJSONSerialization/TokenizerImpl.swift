@@ -29,7 +29,7 @@ public class TokenizerImpl: Tokenizer {
         }
     }
 
-    public func nextToken() throws -> Token {
+    private func nextToken() throws -> Token {
         while scanner.hasNext() {
             let ch = try scanner.next()
             switch ch {
@@ -109,15 +109,19 @@ public class TokenizerImpl: Tokenizer {
                 case "t":
                     str.append("\t")
                 case "u":
+                    var ucodeStr = ""
                     for _ in 1 ... 4 {
-                        let ucode = try scanner.next()
-                        var ucodeStr = ""
-                        guard ucode.isHexDigit else {
+                        let uchar = try scanner.next()
+                        guard uchar.isHexDigit else {
                             throw JsonTokenizeException.IllegalCharacter(position: scanner.position)
                         }
-                        ucodeStr.append(ucode)
-                        str.append(Character(ucodeStr))
+                        ucodeStr.append(uchar)
                     }
+                    guard let ucode = Int(ucodeStr), let uscalar = Unicode.Scalar(ucode) else {
+                        throw JsonTokenizeException.IllegalCharacter(position: scanner.position)
+                    }
+                    let char = Character(uscalar)
+                    str.append(char)
                 case " ":
                     str.append(" ")
                 default:
